@@ -1,0 +1,45 @@
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Microsoft Azure Cloud                             │
+│                                                                             │
+│  ┌─────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐   │
+│  │ Azure DevOps    │    │ Azure Container     │    │ Azure Key Vault     │   │
+│  │ (CI/CD Pipeline)│    │ Registry (ACR)      │    │ (Secrets/Config)    │   │
+│  └─────────────────┘    └─────────────────────┘    └─────────────────────┘   │
+│            │                       │                        │                 │
+│            └───────────────────────┼────────────────────────┼─────────────────┘
+│                                    │                        │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                       Azure Kubernetes Service (AKS)                     │ │
+│  │  (3+ Nodes, Multi-AZ, HPA/Cluster Autoscaler)                           │ │
+│  │                                                                         │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │ │
+│  │  │ Backend Pods │  │ Frontend   │  │ Prometheus  │  │ Grafana     │     │ │
+│  │  │ (3+ Replicas)│  │ Pods (2+)  │  │ (Metrics)   │  │ (Dashboards)│     │ │
+│  │  │ - FmcService │  │ - React UI │  │            │  │             │     │ │
+│  │  │ - Sessions   │  │ - Grids/   │  │            │  │             │     │ │
+│  │  │ - QuickFIX/J │  │   Replay   │  │            │  │             │     │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘     │ │
+│  │            │                  │                  │                     │ │
+│  │   R2DBC    │             HTTP/WS              │     Prometheus Scrape │ │
+│  │   /Kafka   │                  │                  │                     │ │
+│  └────────────┼──────────────────┼──────────────────┼─────────────────────┘ │
+│               │                  │                  │                        │
+│  ┌────────────┼──────────────────┼──────────────────┼────────────────────────┐ │
+│  │ Azure DB   │     Azure Event │  Azure Load     │   Azure Application   │ │
+│  │ for         │     Hubs        │  Balancer       │   Insights            │ │
+│  │ PostgreSQL  │     (Kafka-compat)│  (Ingress)     │   (Tracing/Monitoring)│ │
+│  │             │                  │                 │                        │ │
+│  │ • fmc_raw_  │ • Topic: fmc-   │ • Distributes   │ • OpenTelemetry       │ │
+│  │   message   │   routed-       │   Traffic       │ • Alerts (e.g., seq   │ │
+│  │ • Multi-AZ  │   messages      │ • SSL Termination│   mismatch)          │ │
+│  │ • Private   │ • Group: fmc-   │                 │                        │ │
+│  │   Link      │   consumers     │                 │                        │ │
+│  │ • Backups   │ • Rebalancing   │                 │                        │ │
+│  │             │   on Failure    │                 │                        │ │
+│  └─────────────┘  └──────────────────┘  └─────────────────┘  └────────────────┘ │
+│                                                                             │
+│  External Flows:                                                             │
+│  Markets (Scheduled) ──FIX──→ AKS Backend ──Routing──→ Event Hubs ──Store──→ DB │
+│  Users ──HTTPS/WS──→ Load Balancer ──→ Frontend/Backend ──Real-time──→ UI    │
+│  Fault Tolerance: Multi-Node Consumers → Rebalance on Node Failure           │
+└─────────────────────────────────────────────────────────────────────────────┘
