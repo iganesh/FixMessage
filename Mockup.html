@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FMC FIX Message Processor - UI Mockup</title>
+    <title>FMC FIX Message Processor - Reordered UI Mockup</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS for FMC Theme (Material-UI inspired: Blue/Green) -->
+    <!-- Custom CSS for FMC Theme (Material-UI inspired: Blue/Green) + Switches -->
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
         .header { background-color: #1976d2; color: white; padding: 1rem; text-align: center; }
@@ -17,11 +17,22 @@
         .btn-start { background-color: #4caf50; color: white; }
         .btn-stop { background-color: #f44336; color: white; }
         .btn-reset { background-color: #ff9800; color: white; }
+        .btn-add { background-color: #4caf50; color: white; }
+        .btn-edit { background-color: #2196f3; color: white; }
+        .btn-delete { background-color: #f44336; color: white; }
         .alert-banner { position: fixed; top: 0; left: 0; width: 100%; z-index: 1050; }
         .status-chip { padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
         .status-received { background-color: #e3f2fd; color: #1976d2; }
         .status-processed { background-color: #e8f5e8; color: #388e3c; }
         .latency-high { color: #f44336; font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196f3; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .form-label { font-weight: 500; color: #1976d2; }
+        .modal-header { background-color: #1976d2; color: white; }
     </style>
 </head>
 <body>
@@ -29,7 +40,7 @@
     <!-- Header -->
     <div class="header">
         <h1>Enhanced FMC FIX Message Processor</h1>
-        <p>Cloud-Native FIX Processor with Chronicle & Broadridge Features | Real-Time Dashboard</p>
+        <p>Cloud-Native FIX Processor with Chronicle & Broadridge Features | Real-Time Dashboard (Reordered Tabs)</p>
     </div>
 
     <!-- Alert Snackbar Mock (Broadridge-inspired: Fixed top alert) -->
@@ -41,53 +52,90 @@
     </div>
 
     <div class="container mt-4">
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs (Reordered) -->
         <ul class="nav nav-tabs" id="fmcTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="process-tab" data-bs-toggle="tab" data-bs-target="#process" type="button" role="tab">Process Message</button>
+                <button class="nav-link active" id="config-tab" data-bs-toggle="tab" data-bs-target="#session-config" type="button" role="tab">Session Config</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">Sessions</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab">Messages Grid</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">Sessions</button>
+                <button class="nav-link" id="process-tab" data-bs-toggle="tab" data-bs-target="#process" type="button" role="tab">Process Message</button>
             </li>
         </ul>
 
-        <!-- Tab Content -->
+        <!-- Tab Content (Reordered) -->
         <div class="tab-content mt-3" id="fmcTabContent">
-            <!-- Tab 1: Process Message Form -->
-            <div class="tab-pane fade show active" id="process" role="tabpanel">
+            <!-- Tab 1: Session Config (Now First) -->
+            <div class="tab-pane fade show active" id="session-config" role="tabpanel">
                 <div class="card">
-                    <div class="card-header">
-                        <h5>Submit FIX Message (with Chronicle Low-Latency Persistence)</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>FIX Session Configurations (QuickFIX/J Params)</h5>
+                        <button class="btn btn-outline-secondary btn-sm float-end" onclick="loadSessionConfigs()">Refresh</button>
                     </div>
                     <div class="card-body">
-                        <form id="processForm">
-                            <div class="mb-3">
-                                <label for="rawData" class="form-label">Raw FIX Message (e.g., 8=FIX.4.4|9=65|...)</label>
-                                <textarea class="form-control" id="rawData" rows="5" placeholder="Enter raw FIX data here..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="sessionId" class="form-label">Session ID</label>
-                                <input type="text" class="form-control" id="sessionId" placeholder="e.g., FMC_SESSION_1">
-                            </div>
-                            <div class="mb-3">
-                                <label for="clusterName" class="form-label">Cluster Name</label>
-                                <select class="form-select" id="clusterName">
-                                    <option value="fmc-cluster-1">fmc-cluster-1</option>
-                                    <option value="fmc-cluster-2">fmc-cluster-2</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Process & Route (Dynamic Routing Applied)</button>
-                            <div id="formFeedback" class="mt-2"></div>
-                        </form>
-                        <p class="mt-3 text-muted">Routing: Tag/Source/Mapping-based (Broadridge rules) | Persistence: Chronicle Queue</p>
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#configModal" onclick="openAddModal()">
+                                <i class="bi bi-plus"></i> Add Config
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="configsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Session ID</th>
+                                        <th>Host IP</th>
+                                        <th>Port</th>
+                                        <th>Connection Type</th>
+                                        <th>Start/End Time</th>
+                                        <th>Reconnect Interval (s)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic content via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-muted">Configs applied dynamically. Use JMX=Y for monitoring. Other Policies: e.g., HeartBtInt=30.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 2: Messages Grid (Mock DataGrid) -->
+            <!-- Tab 2: Sessions Table -->
+            <div class="tab-pane fade" id="sessions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Available Sessions (Chronicle Load Balancing)</h5>
+                        <button class="btn btn-outline-secondary btn-sm float-end" onclick="loadSessions()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped" id="sessionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Session ID</th>
+                                    <th>Status</th>
+                                    <th>Initiator Seq Num</th>
+                                    <th>Acceptor Seq Num</th>
+                                    <th>Avg Latency (ms)</th>
+                                    <th>Seq Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic content via JS -->
+                            </tbody>
+                        </table>
+                        <p class="text-muted">Actions: Start/Stop/Reset (Broadridge monitoring) | Market Scheduling: Auto on config.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Messages Grid (Mock DataGrid) -->
             <div class="tab-pane fade" id="messages" role="tabpanel">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -131,32 +179,141 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Sessions Table -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
+            <!-- Tab 4: Process Message Form -->
+            <div class="tab-pane fade" id="process" role="tabpanel">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Available Sessions (Chronicle Load Balancing)</h5>
-                        <button class="btn btn-outline-secondary btn-sm float-end" onclick="loadSessions()">Refresh</button>
+                        <h5>Submit FIX Message (with Chronicle Low-Latency Persistence)</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-striped" id="sessionsTable">
-                            <thead>
-                                <tr>
-                                    <th>Session ID</th>
-                                    <th>Status</th>
-                                    <th>Initiator Seq Num</th>
-                                    <th>Acceptor Seq Num</th>
-                                    <th>Avg Latency (ms)</th>
-                                    <th>Seq Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Dynamic content via JS -->
-                            </tbody>
-                        </table>
-                        <p class="text-muted">Actions: Start/Stop/Reset (Broadridge monitoring) | Market Scheduling: Auto on config.</p>
+                        <form id="processForm">
+                            <div class="mb-3">
+                                <label for="rawData" class="form-label">Raw FIX Message (e.g., 8=FIX.4.4|9=65|...)</label>
+                                <textarea class="form-control" id="rawData" rows="5" placeholder="Enter raw FIX data here..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sessionId" class="form-label">Session ID</label>
+                                <input type="text" class="form-control" id="sessionId" placeholder="e.g., FMC_SESSION_1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="clusterName" class="form-label">Cluster Name</label>
+                                <select class="form-select" id="clusterName">
+                                    <option value="fmc-cluster-1">fmc-cluster-1</option>
+                                    <option value="fmc-cluster-2">fmc-cluster-2</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Process & Route (Dynamic Routing Applied)</button>
+                            <div id="formFeedback" class="mt-2"></div>
+                        </form>
+                        <p class="mt-3 text-muted">Routing: Tag/Source/Mapping-based (Broadridge rules) | Persistence: Chronicle Queue</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Config Modal (For Tab 1) -->
+    <div class="modal fade" id="configModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Add Session Config</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="configForm">
+                        <div class="mb-3">
+                            <label for="sessionId" class="form-label">Session ID (e.g., FMC_SESSION_1)</label>
+                            <input type="text" class="form-control" id="sessionId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="host" class="form-label">Host IP Address</label>
+                            <input type="text" class="form-control" id="host" placeholder="192.168.1.100" required pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                        </div>
+                        <div class="mb-3">
+                            <label for="port" class="form-label">Port</label>
+                            <input type="number" class="form-control" id="port" value="9876" min="1" max="65535" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="connectionType" class="form-label">Connection Type</label>
+                            <select class="form-select" id="connectionType" required>
+                                <option value="acceptor">Acceptor</option>
+                                <option value="initiator">Initiator</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="wakeupDelay" class="form-label">Wakeup Delay (ms)</label>
+                            <input type="number" class="form-control" id="wakeupDelay" value="100" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Use JMX (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="useJmx" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="startTime" class="form-label">Start Time (HH:MM)</label>
+                                    <input type="time" class="form-control" id="startTime" value="09:30" required>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="endTime" class="form-label">End Time (HH:MM)</label>
+                                    <input type="time" class="form-control" id="endTime" value="16:00" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reset on Login (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="resetOnLogin">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reconnectInterval" class="form-label">Reconnect Interval (seconds)</label>
+                            <input type="number" class="form-control" id="reconnectInterval" value="30" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Require Orig Sending Time (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="requireOrigSendingTime">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">All Unknown Msg Fields (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="allUnknownMsgFields">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Validate Fields Out of Order (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="validateFieldsOutOfOrder">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Validate User Defined Fields (Y/N)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="validateUserDefinedFields">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="otherPolicies" class="form-label">Other Policies (e.g., HeartBtInt=30)</label>
+                            <textarea class="form-control" id="otherPolicies" rows="3" placeholder="Key=Value,Key=Value"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveConfig()">Save & Apply</button>
                 </div>
             </div>
         </div>
@@ -164,22 +321,29 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Mockup JS for Data Loading and Interactivity -->
+    <!-- Mockup JS for All Tabs -->
     <script>
-        // Fake data for Messages
+        // Original Fake data for Messages
         const mockMessages = [
             { id: 1, msgType: 'D', seqNum: '1001', sessionId: 'FMC_SESSION_1', cluster: 'fmc-cluster-1', status: 'RECEIVED', received: '2025-11-14 12:00', sent: '' },
             { id: 2, msgType: '8', seqNum: '1002', sessionId: 'FMC_SESSION_2', cluster: 'fmc-cluster-1', status: 'PROCESSED', received: '2025-11-14 12:05', sent: '2025-11-14 12:06' },
             { id: 3, msgType: 'D', seqNum: '1003', sessionId: 'FMC_SESSION_1', cluster: 'fmc-cluster-2', status: 'REPLAYED', received: '2025-11-14 12:10', sent: '2025-11-14 12:15' }
         ];
 
-        // Fake data for Sessions
+        // Original Fake data for Sessions
         const mockSessions = [
             { sessionId: 'FMC_SESSION_1', status: 'Active', initSeq: 1001, accSeq: 1001, latency: 15, seqStatus: 'OK' },
             { sessionId: 'FMC_SESSION_2', status: 'Inactive', initSeq: 1002, accSeq: 1003, latency: 60, seqStatus: 'MISMATCH' },
             { sessionId: 'FMC_SESSION_3', status: 'Active', initSeq: 1004, accSeq: 1004, latency: 20, seqStatus: 'OK' }
         ];
 
+        // New Fake data for Session Configs
+        let mockConfigs = [
+            { id: 1, sessionId: 'FMC_SESSION_1', host: '192.168.1.100', port: 9876, connectionType: 'acceptor', startTime: '09:30', endTime: '16:00', reconnectInterval: 30 },
+            { id: 2, sessionId: 'FMC_SESSION_2', host: '10.0.0.50', port: 9877, connectionType: 'initiator', startTime: '08:00', endTime: '17:00', reconnectInterval: 60 }
+        ];
+
+        // Functions for Messages Tab
         function loadMessages() {
             const tbody = document.querySelector('#messagesTable tbody');
             tbody.innerHTML = '';
@@ -213,6 +377,7 @@
             }
         }
 
+        // Functions for Sessions Tab
         function loadSessions() {
             const tbody = document.querySelector('#sessionsTable tbody');
             tbody.innerHTML = '';
@@ -238,20 +403,113 @@
         function stopSession(id) { alert(`Stopped session: ${id}`); loadSessions(); }
         function resetSession(id) { alert(`Reset sequence for: ${id} (Initiator/Acceptor Sync)`); loadSessions(); }
 
-        // Form Submission Mock
-        document.getElementById('processForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const rawData = document.getElementById('rawData').value;
-            if (rawData) {
-                document.getElementById('formFeedback').innerHTML = '<div class="alert alert-success">Message processed! Routed via Broadridge rules & persisted in Chronicle Queue.</div>';
-            } else {
-                document.getElementById('formFeedback').innerHTML = '<div class="alert alert-danger">Please enter FIX data.</div>';
-            }
+        // Original Form Submission Mock for Process Message Tab
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('processForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const rawData = document.getElementById('rawData').value;
+                if (rawData) {
+                    document.getElementById('formFeedback').innerHTML = '<div class="alert alert-success">Message processed! Routed via Broadridge rules & persisted in Chronicle Queue.</div>';
+                } else {
+                    document.getElementById('formFeedback').innerHTML = '<div class="alert alert-danger">Please enter FIX data.</div>';
+                }
+            });
         });
 
-        // Init Data on Load
+        // Functions for Session Config Tab (Now First)
+        function loadSessionConfigs() {
+            const tbody = document.querySelector('#configsTable tbody');
+            tbody.innerHTML = '';
+            mockConfigs.forEach(config => {
+                const row = `<tr>
+                    <td>${config.sessionId}</td>
+                    <td>${config.host}</td>
+                    <td>${config.port}</td>
+                    <td>${config.connectionType}</td>
+                    <td>${config.startTime} - ${config.endTime}</td>
+                    <td>${config.reconnectInterval}</td>
+                    <td>
+                        <button class="btn btn-edit btn-sm me-1" onclick="editConfig(${config.id})" data-bs-toggle="modal" data-bs-target="#configModal">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-delete btn-sm" onclick="deleteConfig(${config.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add Session Config';
+            clearForm();
+        }
+
+        function editConfig(id) {
+            const config = mockConfigs.find(c => c.id === id);
+            if (config) {
+                document.getElementById('modalTitle').textContent = 'Edit Session Config';
+                document.getElementById('sessionId').value = config.sessionId;
+                document.getElementById('host').value = config.host;
+                document.getElementById('port').value = config.port;
+                document.getElementById('connectionType').value = config.connectionType;
+                document.getElementById('wakeupDelay').value = 100;
+                document.getElementById('useJmx').checked = true;
+                document.getElementById('startTime').value = config.startTime + ':00';
+                document.getElementById('endTime').value = config.endTime + ':00';
+                document.getElementById('resetOnLogin').checked = false;
+                document.getElementById('reconnectInterval').value = config.reconnectInterval;
+                document.getElementById('requireOrigSendingTime').checked = false;
+                document.getElementById('allUnknownMsgFields').checked = false;
+                document.getElementById('validateFieldsOutOfOrder').checked = false;
+                document.getElementById('validateUserDefinedFields').checked = false;
+                document.getElementById('otherPolicies').value = '';
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('sessionId').value = '';
+            document.getElementById('host').value = '';
+            document.getElementById('port').value = '9876';
+            document.getElementById('connectionType').value = 'acceptor';
+            document.getElementById('wakeupDelay').value = '100';
+            document.getElementById('useJmx').checked = true;
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('resetOnLogin').checked = false;
+            document.getElementById('reconnectInterval').value = '30';
+            document.getElementById('requireOrigSendingTime').checked = false;
+            document.getElementById('allUnknownMsgFields').checked = false;
+            document.getElementById('validateFieldsOutOfOrder').checked = false;
+            document.getElementById('validateUserDefinedFields').checked = false;
+            document.getElementById('otherPolicies').value = '';
+        }
+
+        function saveConfig() {
+            const form = document.getElementById('configForm');
+            if (form.checkValidity()) {
+                alert('Config saved and applied to QuickFIX/J! (Mock - Refresh table)');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('configModal'));
+                modal.hide();
+                loadSessionConfigs();
+            } else {
+                alert('Please fill required fields (e.g., IP format).');
+            }
+        }
+
+        function deleteConfig(id) {
+            if (confirm(`Delete config ${id}?`)) {
+                mockConfigs = mockConfigs.filter(c => c.id !== id);
+                loadSessionConfigs();
+                alert('Config deleted (Mock)');
+            }
+        }
+
+        // Init Data on Load for All Tabs
         loadMessages();
         loadSessions();
+        loadSessionConfigs();
     </script>
 </body>
 </html>
