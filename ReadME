@@ -1,209 +1,67 @@
-Enhanced FMC FIX Message Processor
-A production-ready, cloud-native Spring Boot + React application for processing FIX protocol messages in a Financial Message Center (FMC) environment. It supports dynamic routing, session management, fault-tolerant clustering, and integrates Chronicle FIX (low-latency queuing) and Broadridge FIX (advanced monitoring/routing) features for high-performance, enterprise-grade operations.​
+# Enhanced FMC FIX Message Processor
 
-Features
-FIX Protocol Processing: Parses, validates, and processes FIX 4.4 messages using QuickFIX/J, with Chronicle-inspired low-latency persistence via Chronicle Queue.
+A production-ready, cloud-native Spring Boot + React application for processing FIX protocol messages in a Financial Message Center (FMC) environment. It supports dynamic routing, session management, fault-tolerant clustering, and integrates Chronicle FIX (low-latency queuing) and Broadridge FIX (advanced monitoring/routing) features for high-performance, enterprise-grade operations.
 
-Dynamic Message Routing: Tag-based (e.g., MsgType=D), source-system-based (e.g., SenderCompID), and mapping-based routing with configurable policies (Round Robin, Sticky sessions from Chronicle; dynamic rules from Broadridge).
+## Features
 
-Session Management: Start/stop/reset sequence numbers (initiator/acceptor sync with ResetSeqNumFlag), view available sessions with seq nums.
+- **FIX Protocol Processing**: Parses, validates, and processes FIX 4.4 messages using QuickFIX/J, with Chronicle-inspired low-latency persistence via Chronicle Queue.
+- **Dynamic Message Routing**: Tag-based (e.g., MsgType=D), source-system-based (e.g., SenderCompID), and mapping-based routing with configurable policies (Round Robin, Sticky sessions from Chronicle; dynamic rules from Broadridge).
+- **Session Management**: Start/stop/reset sequence numbers (initiator/acceptor sync with ResetSeqNumFlag), view available sessions with seq nums.
+- **Real-Time UI**: React dashboard with message grid (status filters, replay), session table, and Broadridge-inspired alerts via WebSocket.
+- **Fault Tolerance & Clustering**: Kafka/Event Hubs consumer groups for multi-node failover; Chronicle HA/DR for millisecond recovery.
+- **Durable Storage**: PostgreSQL table `fmc_raw_message` (id, dates, status, cluster_name, sessionid, msg_type, msg_seq_num, data) with R2DBC reactivity.
+- **Observability**: Prometheus/Grafana metrics, Azure Monitor integration, real-time alerts (latency, seq mismatches).
+- **Security**: OAuth2/JWT, TLS for FIX/WebSocket.
+- **Post-Trade Support**: Drop-copy for compliance, replay functionality, STP hooks (Broadridge-inspired).
+- **Deployment**: Docker, Kubernetes (AKS), with multi-AZ scaling.
 
-Real-Time UI: React dashboard with message grid (status filters, replay), session table, and Broadridge-inspired alerts via WebSocket.
+Throughput: 10,000+ msgs/sec; Latency: <50ms (p95) with Chronicle enhancements.
 
-Fault Tolerance & Clustering: Kafka/Event Hubs consumer groups for multi-node failover; Chronicle HA/DR for millisecond recovery.
+## Tech Stack
 
-Durable Storage: PostgreSQL table fmc_raw_message (id, dates, status, cluster_name, sessionid, msg_type, msg_seq_num, data) with R2DBC reactivity.
+### Backend
+- Spring Boot 3.2 + Java 21 (WebFlux reactive)
+- QuickFIX/J 2.3.1 (core FIX engine)
+- Chronicle Queue 5.25.11 (low-latency persistence)
+- R2DBC PostgreSQL (reactive DB)
+- Apache Kafka/Event Hubs (messaging)
+- Spring Security OAuth2/JWT
 
-Observability: Prometheus/Grafana metrics, Azure Monitor integration, real-time alerts (latency, seq mismatches).
+### Frontend
+- React 18 + TypeScript 5.3
+- Vite 5.0 (build tool)
+- Material-UI 5.15 (components)
+- STOMP.js + SockJS (WebSocket)
+- Zustand (state management)
 
-Security: OAuth2/JWT, TLS for FIX/WebSocket.
+### Infrastructure
+- Docker + Kubernetes (AKS deployment)
+- Azure PostgreSQL, Event Hubs, Monitor
+- Nginx (reverse proxy)
 
-Post-Trade Support: Drop-copy for compliance, replay functionality, STP hooks (Broadridge-inspired).
+## Prerequisites
 
-Deployment: Docker, Kubernetes (AKS), with multi-AZ scaling.
+- Java 21 JDK
+- Node.js 20+ and npm/yarn
+- Docker 20+ and Docker Compose
+- Kubernetes (kubectl, Helm) for cloud deploy
+- PostgreSQL 15+ (local or Azure)
+- Maven 3.9+
+- Azure CLI (for cloud setup)
 
-Throughput: 10,000+ msgs/sec; Latency: <50ms (p95) with Chronicle enhancements.​
+Clone the repo: `git clone <repo-url> && cd fix-message-processor`.
 
-Tech Stack
-Backend
-Spring Boot 3.2 + Java 21 (WebFlux reactive)
+## Local Setup
 
-QuickFIX/J 2.3.1 (core FIX engine)
+### Backend
+1. Update `backend/src/main/resources/application.yml` with DB/Kafka creds.
+2. Run migrations: `cd backend && ./mvnw flyway:migrate` (add Flyway dependency if needed).
+3. Start: `./mvnw spring-boot:run` (default: http://localhost:8080).
 
-Chronicle Queue 5.25.11 (low-latency persistence)
+### Frontend
+1. `cd frontend && npm install`.
+2. Start dev server: `npm run dev` (http://localhost:3000).
+3. For production: `npm run build` (serves via Nginx).
 
-R2DBC PostgreSQL (reactive DB)
-
-Apache Kafka/Event Hubs (messaging)
-
-Spring Security OAuth2/JWT
-
-Frontend
-React 18 + TypeScript 5.3
-
-Vite 5.0 (build tool)
-
-Material-UI 5.15 (components)
-
-STOMP.js + SockJS (WebSocket)
-
-Zustand (state management)
-
-Infrastructure
-Docker + Kubernetes (AKS deployment)
-
-Azure PostgreSQL, Event Hubs, Monitor
-
-Nginx (reverse proxy)
-
-Prerequisites
-Java 21 JDK
-
-Node.js 20+ and npm/yarn
-
-Docker 20+ and Docker Compose
-
-Kubernetes (kubectl, Helm) for cloud deploy
-
-PostgreSQL 15+ (local or Azure)
-
-Maven 3.9+
-
-Azure CLI (for cloud setup)
-
-Clone the repo: git clone <repo-url> && cd fix-message-processor.​
-
-Local Setup
-Backend
-Update backend/src/main/resources/application.yml with DB/Kafka creds.
-
-Run migrations: cd backend && ./mvnw flyway:migrate (add Flyway dependency if needed).
-
-Start: ./mvnw spring-boot:run (default: http://localhost:8080).
-
-Frontend
-cd frontend && npm install.
-
-Start dev server: npm run dev (http://localhost:3000).
-
-For production: npm run build (serves via Nginx).
-
-Database Setup
+### Database Setup
 Run SQL in PostgreSQL:
-
-sql
-CREATE TABLE fmc_raw_message (
-    id BIGSERIAL PRIMARY KEY,
-    creation_date TIMESTAMP NOT NULL,
-    received_date TIMESTAMP NOT NULL,
-    sent_date TIMESTAMP,
-    status VARCHAR(20) NOT NULL,
-    cluster_name VARCHAR(50) NOT NULL,
-    sessionid VARCHAR(50) NOT NULL,
-    msg_type VARCHAR(10) NOT NULL,
-    msg_seq_num VARCHAR(20) NOT NULL,
-    data TEXT NOT NULL
-);
--- Add indexes as per code
-With Docker Compose
-docker-compose up -d (starts backend, frontend, PostgreSQL, Kafka, Prometheus/Grafana). Access UI at http://localhost:3000.​
-
-Running the Application
-Process Message: Use UI form (tab 1) or POST /api/fmc/process with JSON { "data": "8=FIX.4.4|...", "sessionId": "FMC_SESSION_1" } and param clusterName=fmc-cluster-1.
-
-View Messages: Tab 2 shows grid with filters (status, cluster); select and replay.
-
-Sessions: Tab 3 lists sessions; start/stop/reset buttons.
-
-Alerts: Real-time notifications for errors/latency (Broadridge feature).
-
-FIX Sessions: Configure quickfixj-server.cfg for external markets; sessions auto-start on schedule.
-
-Test FIX message: Send raw FIX via TCP to port 9876.​
-
-API Endpoints
-Method	Endpoint	Description	Auth
-POST	/api/fmc/process	Process FIX message (with Chronicle persistence)	JWT
-GET	/api/fmc	List messages (grid data)	JWT
-POST	/api/fmc/{id}/replay	Replay message (with alert)	JWT
-GET	/api/fmc/sessions	View sessions (seq nums, latency)	JWT
-POST	/api/fmc/sessions/start/{id}	Start session	JWT
-POST	/api/fmc/sessions/stop/{id}	Stop session	JWT
-POST	/api/fmc/sessions/reset/{id}	Reset seq nums	JWT
-GET	/api/fmc/stream	SSE for real-time messages	JWT
-WS	/ws	WebSocket for updates/alerts	JWT
-Swagger docs: http://localhost:8080/swagger-ui.html (add springdoc-openapi-ui dependency).​
-
-Deployment
-Docker
-Build: docker build -t fmc-backend:latest ./backend and ./frontend.
-
-Run: Use docker-compose.yml for local cluster.
-
-Kubernetes (Azure AKS)
-Create AKS: az aks create --resource-group fmc-rg --name fmc-aks --node-count 3.
-
-Deploy: kubectl apply -f kubernetes/ (deployment.yaml for backend/frontend with 3 replicas; service.yaml for LoadBalancer).
-
-Secrets: Use Azure Key Vault for DB creds; mount Chronicle Queue to PersistentVolume (Azure Files).
-
-Scale: kubectl scale deployment fmc-backend --replicas=5.
-
-Ingress: Apply nginx-ingress for HTTPS.
-
-Helm chart available (optional). Multi-AZ for HA; HPA for auto-scaling on CPU>70%.​
-
-Cloud Resources (Azure)
-AKS Cluster (3 nodes): ~$200/mo.
-
-PostgreSQL Flexible Server: ~$100/mo.
-
-Event Hubs (Kafka): ~$50/mo.
-
-Total: ~$400/mo scalable.
-
-Configuration
-Key props in application.yml:
-
-spring.datasource.url: PostgreSQL connection.
-
-spring.kafka.bootstrap-servers: Kafka/Event Hubs.
-
-chronicle.queue.path: /data/chronicle-queue (volume mount).
-
-fmc.routing.policies: YAML rules for dynamic routing.
-
-FIX config: Edit quickfixj-server.cfg for sessions (e.g., StartTime=09:30, EndTime=16:00 for markets).​
-
-Monitoring & Troubleshooting
-Metrics: Grafana at http://localhost:3000/grafana (dashboards for throughput, latency, consumer lag).
-
-Logs: Backend logs via SLF4J; tail with kubectl logs.
-
-Common Issues:
-
-Seq Mismatch: Reset session; check alerts.
-
-Chronicle Queue Full: Increase roll-cycle or disk space.
-
-Kafka Rebalance: Normal on node failure; monitor lag.
-
-FIX Validation Fail: Verify raw data format.
-
-Alerts: UI shows Broadridge-style notifications (e.g., >50ms latency).
-
-Debug: Enable debug logging logging.level.com.fixprocessor=DEBUG.​
-
-Contributing
-Fork and clone.
-
-Create branch: git checkout -b feature/add-validation.
-
-Commit: Use conventional commits (e.g., "feat: add Chronicle validation").
-
-Push and PR; include tests.
-
-Run tests: Backend ./mvnw test; Frontend npm test.​
-
-License
-MIT License. See LICENSE file for detai
