@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FMC FIX Message Processor - UI Mockup</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS for FMC Theme (Material-UI inspired: Blue/Green) -->
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
+        .header { background-color: #1976d2; color: white; padding: 1rem; text-align: center; }
+        .nav-tabs .nav-link.active { background-color: #1976d2; color: white; border-color: #1976d2; }
+        .nav-tabs .nav-link { color: #1976d2; }
+        .table { background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-replay { background-color: #ffc107; color: black; }
+        .btn-start { background-color: #4caf50; color: white; }
+        .btn-stop { background-color: #f44336; color: white; }
+        .btn-reset { background-color: #ff9800; color: white; }
+        .alert-banner { position: fixed; top: 0; left: 0; width: 100%; z-index: 1050; }
+        .status-chip { padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
+        .status-received { background-color: #e3f2fd; color: #1976d2; }
+        .status-processed { background-color: #e8f5e8; color: #388e3c; }
+        .latency-high { color: #f44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Enhanced FMC FIX Message Processor</h1>
+        <p>Cloud-Native FIX Processor with Chronicle & Broadridge Features | Real-Time Dashboard</p>
+    </div>
+
+    <!-- Alert Snackbar Mock (Broadridge-inspired: Fixed top alert) -->
+    <div id="alertSnackbar" class="alert-banner">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Latency Alert (Chronicle FIX):</strong> Processing time 60ms exceeded 50ms threshold. Check sessions.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" id="fmcTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="process-tab" data-bs-toggle="tab" data-bs-target="#process" type="button" role="tab">Process Message</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab">Messages Grid</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">Sessions</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3" id="fmcTabContent">
+            <!-- Tab 1: Process Message Form -->
+            <div class="tab-pane fade show active" id="process" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Submit FIX Message (with Chronicle Low-Latency Persistence)</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="processForm">
+                            <div class="mb-3">
+                                <label for="rawData" class="form-label">Raw FIX Message (e.g., 8=FIX.4.4|9=65|...)</label>
+                                <textarea class="form-control" id="rawData" rows="5" placeholder="Enter raw FIX data here..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sessionId" class="form-label">Session ID</label>
+                                <input type="text" class="form-control" id="sessionId" placeholder="e.g., FMC_SESSION_1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="clusterName" class="form-label">Cluster Name</label>
+                                <select class="form-select" id="clusterName">
+                                    <option value="fmc-cluster-1">fmc-cluster-1</option>
+                                    <option value="fmc-cluster-2">fmc-cluster-2</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Process & Route (Dynamic Routing Applied)</button>
+                            <div id="formFeedback" class="mt-2"></div>
+                        </form>
+                        <p class="mt-3 text-muted">Routing: Tag/Source/Mapping-based (Broadridge rules) | Persistence: Chronicle Queue</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Messages Grid (Mock DataGrid) -->
+            <div class="tab-pane fade" id="messages" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>FMC Messages Grid (R2DBC Reactive Queries)</h5>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="statusFilter" style="width: auto;">
+                                <option>All Status</option>
+                                <option>RECEIVED</option>
+                                <option>PROCESSED</option>
+                                <option>REPLAYED</option>
+                            </select>
+                            <select class="form-select" id="clusterFilter" style="width: auto;">
+                                <option>All Clusters</option>
+                                <option>fmc-cluster-1</option>
+                                <option>fmc-cluster-2</option>
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadMessages()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped" id="messagesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Msg Type</th>
+                                    <th>Seq Num</th>
+                                    <th>Session ID</th>
+                                    <th>Cluster</th>
+                                    <th>Status</th>
+                                    <th>Received</th>
+                                    <th>Sent</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic content via JS -->
+                            </tbody>
+                        </table>
+                        <p class="text-muted">Replay: Resends via session (with alert) | Total: <span id="totalMessages">0</span> | Chronicle Drop-Copy: Enabled for compliance.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Sessions Table -->
+            <div class="tab-pane fade" id="sessions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Available Sessions (Chronicle Load Balancing)</h5>
+                        <button class="btn btn-outline-secondary btn-sm float-end" onclick="loadSessions()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped" id="sessionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Session ID</th>
+                                    <th>Status</th>
+                                    <th>Initiator Seq Num</th>
+                                    <th>Acceptor Seq Num</th>
+                                    <th>Avg Latency (ms)</th>
+                                    <th>Seq Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic content via JS -->
+                            </tbody>
+                        </table>
+                        <p class="text-muted">Actions: Start/Stop/Reset (Broadridge monitoring) | Market Scheduling: Auto on config.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Mockup JS for Data Loading and Interactivity -->
+    <script>
+        // Fake data for Messages
+        const mockMessages = [
+            { id: 1, msgType: 'D', seqNum: '1001', sessionId: 'FMC_SESSION_1', cluster: 'fmc-cluster-1', status: 'RECEIVED', received: '2025-11-14 12:00', sent: '' },
+            { id: 2, msgType: '8', seqNum: '1002', sessionId: 'FMC_SESSION_2', cluster: 'fmc-cluster-1', status: 'PROCESSED', received: '2025-11-14 12:05', sent: '2025-11-14 12:06' },
+            { id: 3, msgType: 'D', seqNum: '1003', sessionId: 'FMC_SESSION_1', cluster: 'fmc-cluster-2', status: 'REPLAYED', received: '2025-11-14 12:10', sent: '2025-11-14 12:15' }
+        ];
+
+        // Fake data for Sessions
+        const mockSessions = [
+            { sessionId: 'FMC_SESSION_1', status: 'Active', initSeq: 1001, accSeq: 1001, latency: 15, seqStatus: 'OK' },
+            { sessionId: 'FMC_SESSION_2', status: 'Inactive', initSeq: 1002, accSeq: 1003, latency: 60, seqStatus: 'MISMATCH' },
+            { sessionId: 'FMC_SESSION_3', status: 'Active', initSeq: 1004, accSeq: 1004, latency: 20, seqStatus: 'OK' }
+        ];
+
+        function loadMessages() {
+            const tbody = document.querySelector('#messagesTable tbody');
+            tbody.innerHTML = '';
+            let filtered = mockMessages;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const clusterFilter = document.getElementById('clusterFilter').value;
+            if (statusFilter !== 'All Status') filtered = filtered.filter(m => m.status === statusFilter);
+            if (clusterFilter !== 'All Clusters') filtered = filtered.filter(m => m.cluster === clusterFilter);
+
+            filtered.forEach(msg => {
+                const row = `<tr>
+                    <td>${msg.id}</td>
+                    <td>${msg.msgType}</td>
+                    <td>${msg.seqNum}</td>
+                    <td>${msg.sessionId}</td>
+                    <td>${msg.cluster}</td>
+                    <td><span class="status-chip status-${msg.status.toLowerCase()}">${msg.status}</span></td>
+                    <td>${msg.received}</td>
+                    <td>${msg.sent || '-'}</td>
+                    <td><button class="btn btn-replay btn-sm" onclick="replayMessage(${msg.id})">Replay</button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+            document.getElementById('totalMessages').textContent = filtered.length;
+        }
+
+        function replayMessage(id) {
+            if (confirm(`Replay message ${id}?`)) {
+                alert(`Message ${id} replayed successfully! (Simulated - Alert sent via WebSocket)`);
+                loadMessages(); // Refresh
+            }
+        }
+
+        function loadSessions() {
+            const tbody = document.querySelector('#sessionsTable tbody');
+            tbody.innerHTML = '';
+            mockSessions.forEach(session => {
+                const row = `<tr>
+                    <td>${session.sessionId}</td>
+                    <td><span class="badge bg-${session.status === 'Active' ? 'success' : 'secondary'}">${session.status}</span></td>
+                    <td>${session.initSeq}</td>
+                    <td>${session.accSeq}</td>
+                    <td class="${session.latency > 50 ? 'latency-high' : ''}">${session.latency}</td>
+                    <td>${session.seqStatus}</td>
+                    <td>
+                        <button class="btn btn-start btn-sm" onclick="startSession('${session.sessionId}')" ${session.status === 'Active' ? 'disabled' : ''}>Start</button>
+                        <button class="btn btn-stop btn-sm" onclick="stopSession('${session.sessionId}')" ${session.status !== 'Active' ? 'disabled' : ''}>Stop</button>
+                        <button class="btn btn-reset btn-sm" onclick="resetSession('${session.sessionId}')">Reset Seq</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function startSession(id) { alert(`Started session: ${id} (Chronicle Load Balanced)`); loadSessions(); }
+        function stopSession(id) { alert(`Stopped session: ${id}`); loadSessions(); }
+        function resetSession(id) { alert(`Reset sequence for: ${id} (Initiator/Acceptor Sync)`); loadSessions(); }
+
+        // Form Submission Mock
+        document.getElementById('processForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const rawData = document.getElementById('rawData').value;
+            if (rawData) {
+                document.getElementById('formFeedback').innerHTML = '<div class="alert alert-success">Message processed! Routed via Broadridge rules & persisted in Chronicle Queue.</div>';
+            } else {
+                document.getElementById('formFeedback').innerHTML = '<div class="alert alert-danger">Please enter FIX data.</div>';
+            }
+        });
+
+        // Init Data on Load
+        loadMessages();
+        loadSessions();
+    </script>
+</body>
+</html>
