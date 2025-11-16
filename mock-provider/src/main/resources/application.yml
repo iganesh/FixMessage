@@ -1,0 +1,13 @@
+﻿server:
+  port: 8081
+
+spring:
+  application:
+    name: finra-mock-provider
+
+fix:
+  generation:
+    rate: 5000
+    symbols: [AAPL, TSLA, GOOGL, MSFT, AMZN]
+    firm-id: FINRA_BROKER_123
+    venue: XNAS

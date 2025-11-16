@@ -17,14 +17,12 @@ A production-ready, cloud-native platform for processing high-throughput FIX pro
 - 4 main tabs for workflow
 - Real-time WebSocket updates
 - Session configuration CRUD
-- Message replay functionality
 - TypeScript support
 
 ### Mock FIX Provider (FINRA CAT)
 - NewOrderSingle (MsgType=D) generation
 - ExecutionReport (MsgType=8) simulation
 - Trade Report (MsgType=AE) for CAT compliance
-- QuickFIX/J initiator with auto-reconnect
 - Configurable message generation rate
 
 ## Quick Start
