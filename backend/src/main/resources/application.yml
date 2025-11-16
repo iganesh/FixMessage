@@ -1,18 +1,10 @@
-﻿spring:
+spring:
   application:
     name: fmc-fix-processor
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/fmc_db
     username: postgres
     password: password
-  kafka:
-    bootstrap-servers: localhost:9092
 
 server:
   port: 8080
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,prometheus
