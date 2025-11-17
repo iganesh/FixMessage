@@ -1,11 +1,11 @@
 package com.fixprocessor.repository;
 
 import com.fixprocessor.model.FmcRawMessage;
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
+import java.util.List;
 
 @Repository
-public interface FmcRawMessageRepository extends R2dbcRepository<FmcRawMessage, Long> {
-    Flux<FmcRawMessage> findByStatus(String status);
+public interface FmcRawMessageRepository extends JpaRepository<FmcRawMessage, Long> {
+    List<FmcRawMessage> findByStatus(String status);
 }

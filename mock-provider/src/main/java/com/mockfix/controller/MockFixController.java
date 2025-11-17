@@ -1,6 +1,5 @@
-﻿package com.mockfix.controller;
+package com.mockfix.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
@@ -8,15 +7,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mock")
-@RequiredArgsConstructor
 public class MockFixController {
     
     @PostMapping("/send-order")
     public ResponseEntity<Map<String, Object>> sendOrder() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("messageType", "D");
-        response.put("message", "Order sent successfully");
+        response.put("messageType", "D - NewOrderSingle");
+        response.put("orderId", "ORDER-" + System.currentTimeMillis());
         return ResponseEntity.ok(response);
     }
     
@@ -24,8 +22,8 @@ public class MockFixController {
     public ResponseEntity<Map<String, Object>> sendExecution() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("messageType", "8");
-        response.put("message", "Execution report sent");
+        response.put("messageType", "8 - ExecutionReport");
+        response.put("execId", "EXEC-" + System.currentTimeMillis());
         return ResponseEntity.ok(response);
     }
     

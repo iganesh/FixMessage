@@ -1,32 +1,35 @@
 package com.fixprocessor.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "fmc_raw_message")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table("fmc_raw_message")
 public class FmcRawMessage {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column("creation_date")
+
+    @Column(name = "creation_date")
     private LocalDateTime creationDate;
-    
-    @Column("status")
+
+    @Column(name = "status")
     private String status;
-    
-    @Column("cluster_name")
+
+    @Column(name = "cluster_name")
     private String clusterName;
-    
-    @Column("session_id")
+
+    @Column(name = "session_id")
     private String sessionId;
-    
-    @Column("data")
+
+    @Column(name = "data", columnDefinition = "TEXT")
     private String data;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
 }

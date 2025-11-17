@@ -1,29 +1,29 @@
 package com.fixprocessor.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "fmc_session_config")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table("fmc_session_config")
 public class FmcSessionConfig {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column("session_id")
+
+    @Column(name = "session_id")
     private String sessionId;
-    
-    @Column("host")
+
+    @Column(name = "host")
     private String host;
-    
-    @Column("port")
+
+    @Column(name = "port")
     private Integer port;
-    
-    @Column("connection_type")
-    private String connectionType;
+
+    @Column(name = "connection_type")
+    private String connectionType = "acceptor";
 }
